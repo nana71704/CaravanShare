@@ -1,0 +1,4 @@
+# src/constants.py
+
+MIN_RESERVATION_DAYS = 1
+DEFAULT_DAILY_RATE = 100000
