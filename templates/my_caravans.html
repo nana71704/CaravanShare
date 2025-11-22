@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - Caravan Share</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .no-caravans { color: #666; margin-top: 20px; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        /* 삭제 버튼 스타일 */
+        .delete-btn { 
+            background: none; 
+            border: none; 
+            color: blue; 
+            text-decoration: underline; 
+            cursor: pointer; 
+            padding: 0;
+            font-size: inherit;
+        }
+    </style>
+</head>
+<body>
+    <h1>내 캐러밴 목록</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="padding: 10px; margin-bottom: 15px; border-radius: 4px; background-color: {% if category == 'success' %}#d4edda{% else %}#f8d7da{% endif %};">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if not caravans %}
+        <p class="no-caravans">아직 등록된 캐러밴이 없습니다. <a href="{{ url_for('new_caravan') }}">새 캐러밴을 등록</a>해 주세요.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>위치</th>
+                    <th>1일 가격 (KRW)</th>
+                    <th>설명</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for caravan in caravans %}
+                <tr>
+                    <td>{{ caravan.name }}</td>
+                    <td>{{ caravan.location }}</td>
+                    <td>{{ "{:,.0f}".format(caravan.price_per_day) }}</td>
+                    <td>{{ caravan.description[:50] }}...</td>
+                    <td>
+                        <a href="{{ url_for('update_caravan', caravan_id=caravan.id) }}">수정</a> | 
+
+                        <form action="{{ url_for('delete_caravan', caravan_id=caravan.id) }}" method="POST" style="display:inline;">
+                            <input type="submit" value="삭제" onclick="return confirm('정말로 이 캐러밴을 삭제하시겠습니까?')" class="delete-btn">
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <a href="{{ url_for('dashboard') }}" class="back-btn">대시보드로 돌아가기</a>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - Caravan Share</title>
+    <style>
+        /* ... (스타일은 그대로 유지) ... */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .search-form { margin-bottom: 30px; display: flex; align-items: flex-end; }
+        .search-field { margin-right: 15px; }
+        .search-form input[type="text"] { padding: 10px; width: 180px; } 
+        .search-form input[type="submit"] { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .alert-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Caravan Search</h1>
+
+    <div class="search-form">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="search-field">
+                {{ form.location.label }}
+                {{ form.location(placeholder="위치 (예: 서울, 부산)", required="required") }}
+            </div>
+
+            <div class="search-field">
+                {{ form.start_date.label }}
+                {{ form.start_date(placeholder="체크인 날짜", required="required") }}
+            </div>
+
+            <div class="search-field">
+                {{ form.end_date.label }}
+                {{ form.end_date(placeholder="체크아웃 날짜", required="required") }}
+            </div>
+
+            <div class="search-field">
+                {{ form.submit() }}
+            </div>
+
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h2>Available Caravans</h2>
+
+    {% if form.errors %}
+        <div class="alert-info">
+            검색에 실패했습니다. 다음 항목을 확인해 주세요:<br>
+            <ul>
+                {% for field, errors in form.errors.items() %}
+                    <li>**{{ field.capitalize() }}**: {{ errors | join(', ') }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>위치</th>
+                <th>1일 가격 (KRW)</th>
+                <th>설명</th>
+                <th>예약</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for caravan in caravans %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('caravan_detail', caravan_id=caravan.id) }}">{{ caravan.name }}</a>
+                </td>
+                <td>{{ caravan.location }}</td>
+                <td>{{ "{:,.0f}".format(caravan.daily_rate) }}</td> 
+                <td>{{ caravan.description[:70] }}...</td>
+                <td>
+                    <a href="{{ url_for('caravan_detail', caravan_id=caravan.id) }}">예약하기</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">검색 조건에 맞는 카라반이 없습니다.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p style="margin-top: 20px;"><a href="{{ url_for('dashboard') }}">대시보드로 돌아가기</a></p>
+</body>
+</html>
