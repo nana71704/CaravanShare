@@ -734,21 +734,17 @@ def admin_deposit():
 
 # --- 5. 앱 실행 ---
 
-import os
+import os  # os 모듈이 import 되어 있어야 합니다.
 
-# Replit 환경 변수 PORT를 사용하고, 없을 경우 5000(또는 8080)을 기본값으로 사용
+# Replit 환경 변수 PORT를 사용하거나 기본값 8080을 사용하도록 설정
 PORT = int(os.environ.get('PORT', 8080))
 
 if __name__ == '__main__':
-    # 🚨 [수정된 부분] 🚨
-    # 서버가 시작되기 전에 db.create_all()을 실행하는 대신,
-    # Flask 앱 실행 환경에서 db.create_all()이 자동으로 실행되도록 설정하는 것이 안전합니다.
 
-    # 1. db.create_all() 코드는 그대로 유지합니다.
     with app.app_context():
-        # db.create_all() 👈 이 부분을 주석 해제해야 합니다!
-        db.create_all()  # <--- 이렇게 수정하세요!
+
+        db.create_all()
         print("데이터베이스 초기화 완료")
 
-    # 2. 서버 실행 (with 블록이 끝나고 실행)
     app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
