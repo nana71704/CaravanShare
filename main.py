@@ -740,13 +740,10 @@ import os  # os 모듈이 import 되어 있어야 합니다.
 PORT = int(os.environ.get('PORT', 8080))
 
 if __name__ == '__main__':
-    # 🚨 [수정된 부분] 🚨
-    # 서버가 시작되기 전에 db.create_all()을 실행하는 대신,
-    # Flask 앱 실행 환경에서 db.create_all()이 자동으로 실행되도록 설정하는 것이 안전합니다.
-
-    # 1. db.create_all() 코드는 그대로 유지합니다.
+    # 1. db.create_all() 코드는 반드시 app.app_context() 안에 있어야 합니다.
     with app.app_context():
-       
-
+        # 🚨 [수정 완료] 테이블 생성 명령어 삽입
+        db.create_all() 
+        
     # 2. 서버 실행
     app.run(host='0.0.0.0', port=PORT, debug=True)
