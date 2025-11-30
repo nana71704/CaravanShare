@@ -734,16 +734,13 @@ def admin_deposit():
 
 # --- 5. 앱 실행 ---
 
-import os  # os 모듈이 import 되어 있어야 합니다.
+# main.py 파일의 가장 아래 실행 블록 (라인 740 근처)
 
-# Replit 환경 변수 PORT를 사용하고, 없을 경우 5000(또는 8080)을 기본값으로 사용
+import os # os 모듈이 import 되어 있어야 합니다.
+
+# Replit 환경 변수 PORT를 사용하거나 기본값 8080을 사용하도록 설정
 PORT = int(os.environ.get('PORT', 8080))
 
 if __name__ == '__main__':
-    # 1. DB 테이블 생성 (Railway에서는 이제 Procfile에서 실행되므로, 이 블록은 로컬 테스트용입니다)
-    with app.app_context():
-        # 테이블을 만들거나 마이그레이션을 실행하는 코드
-       
-        
-    # 2. 서버 실행 (app.run은 if 블록 안에 있어야 합니다.)
+    # 🚨 [최종 수정]: 불필요한 with 블록 제거. 서버 실행만 남깁니다.
     app.run(host='0.0.0.0', port=PORT, debug=True)
