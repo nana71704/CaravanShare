@@ -739,8 +739,8 @@ def admin_deposit():
 import os # os 모듈이 import 되어 있어야 합니다.
 
 # Replit 환경 변수 PORT를 사용하거나 기본값 8080을 사용하도록 설정
-PORT = int(os.environ.get('PORT', 8080))
+PORT = int(os.environ.get('PORT', 8080)) 
 
 if __name__ == '__main__':
-    # 🚨 [최종 수정]: 불필요한 with 블록 제거. 서버 실행만 남깁니다.
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    # 🚨 [수정] debug=True를 False로 변경합니다. (안정성 확보 및 트리거용)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
