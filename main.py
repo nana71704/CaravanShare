@@ -743,7 +743,7 @@ if __name__ == '__main__':
     # 1. db.create_all() 코드는 반드시 app.app_context() 안에 있어야 합니다.
     with app.app_context():
         # 🚨 [수정 완료] 테이블 생성 명령어 삽입
-        db.create_all() 
+        
         
     # 2. 서버 실행
     app.run(host='0.0.0.0', port=PORT, debug=True)
