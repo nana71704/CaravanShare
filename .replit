@@ -14,6 +14,7 @@ localPort = 8080
 externalPort = 8080
 
 [nix]
+packages = ["cacert", "cargo", "libiconv", "rustc"]
 
 [agent]
 expertMode = true

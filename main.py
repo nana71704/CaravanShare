@@ -8,6 +8,8 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, FloatF
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange
 from datetime import datetime
 from enum import Enum
+from flask import flash, redirect, url_for, request
+from flask_login import login_required, current_user
 
 # --- 1. 애플리케이션 및 DB 설정 ---
 
@@ -68,6 +70,7 @@ class User(db.Model, UserMixin):
     host_review_count = db.Column(db.Integer, default=0)
     average_guest_rating = db.Column(db.Float, default=0.0)
     guest_review_count = db.Column(db.Integer, default=0)
+    balance = db.Column(db.Float, default=0.0, nullable=False)
 
     caravans = db.relationship('Caravan', backref='host', lazy=True)
 
@@ -295,6 +298,15 @@ def update_user_rating(user_id, is_host_rating=True):
         user.host_review_count = 0
         db.session.commit()
     # 게스트 평점은 호스트가 리뷰를 작성해야 계산되므로 여기서는 무시
+
+
+class AdminDepositForm(FlaskForm):
+    """관리자가 특정 게스트에게 잔액을 충전하는 폼"""
+    user_id = IntegerField('충전 대상 게스트 ID', validators=[DataRequired()])
+    amount = FloatField('충전 금액 (KRW)',
+                        validators=[DataRequired(),
+                                    NumberRange(min=1000)])
+    submit = SubmitField('잔액 충전 실행')
 
 
 # --- 4. 라우트 정의 ---
@@ -565,8 +577,8 @@ def reject_reservation(reservation_id):
         flash('이미 처리되었거나 취소된 예약입니다.', 'warning')
     else:
         reservation.status = ReservationStatus.CANCELLED
+        reservation.caravan.status = CaravanStatus.AVAILABLE
         db.session.commit()
-        flash(f'예약 #{reservation_id}가 거절되었습니다.', 'danger')
 
     return redirect(url_for('reservations_host'))
 
@@ -646,6 +658,80 @@ def write_review(reservation_id):
                            reservation=reservation)
 
 
+@app.route('/deposit', methods=['POST'])
+@login_required
+def deposit():
+    """현재 로그인된 사용자의 잔액을 충전하는 기능 (POST 요청 처리)"""
+    # 현재 로그인된 사용자만 접근 가능하도록 합니다.
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        try:
+            # 폼 데이터에서 'amount' 값을 가져와 float형으로 변환합니다.
+            amount = float(request.form.get('amount'))
+
+            # 금액이 양수인지 검증합니다.
+            if amount <= 0:
+                flash('충전 금액은 양수여야 합니다.', 'danger')
+                return redirect(url_for('dashboard'))
+
+            # 현재 사용자의 잔액을 업데이트하고 DB에 커밋합니다.
+            current_user.balance += amount
+            db.session.commit()
+
+            # 성공 메시지를 띄우고 대시보드로 리다이렉트합니다.
+            # 금액에 콤마를 넣어 더 보기 좋게 만듭니다.
+            flash(f'잔액이 성공적으로 충전되었습니다. 충전 금액: ₩{amount:,.0f}', 'success')
+            return redirect(url_for('dashboard'))
+
+        except ValueError:
+            # 숫자가 아닌 값이 입력된 경우
+            flash('유효한 금액(숫자)을 입력해 주세요.', 'danger')
+        except Exception as e:
+            # 기타 DB 또는 서버 오류 발생 시
+            flash(f'충전 중 오류가 발생했습니다: {e}', 'danger')
+            db.session.rollback()  # 오류 발생 시 DB 변경사항을 되돌립니다.
+
+    # POST 요청이 아닌 경우 (또는 오류 처리 후) 대시보드로 리다이렉트합니다.
+    return redirect(url_for('dashboard'))
+
+
+# main.py 파일의 라우트 정의 섹션에 추가 (기존 deposit_funds 대체)
+
+
+@app.route('/admin/deposit', methods=['GET', 'POST'])
+@login_required
+def admin_deposit():
+    """관리자/호스트가 특정 게스트의 잔액을 충전하는 UI 및 로직"""
+    # 호스트만 접근 가능하도록 합니다.
+    if current_user.user_role != UserRole.HOST:
+        flash("권한이 없습니다. 호스트만 잔액을 관리할 수 있습니다.", 'danger')
+        return redirect(url_for('dashboard'))
+
+    form = AdminDepositForm()
+
+    if form.validate_on_submit():
+        user_to_update = User.query.get(form.user_id.data)
+        amount = form.amount.data
+
+        if not user_to_update or user_to_update.user_role != UserRole.GUEST:
+            flash(f"ID {form.user_id.data}는 유효한 게스트 계정이 아닙니다.", 'danger')
+            return redirect(url_for('admin_deposit'))
+
+        # 잔액 충전 로직
+        user_to_update.balance += amount
+        db.session.commit()
+
+        flash(
+            f"{user_to_update.name} 님에게 ₩{amount:,.0f} KRW가 충전되었습니다. 현재 잔액: ₩{user_to_update.balance:,.0f}",
+            'success')
+        return redirect(url_for('dashboard'))
+
+    # GET 요청 또는 폼 오류 시 템플릿 렌더링
+    return render_template('admin_deposit.html', title='게스트 잔액 충전', form=form)
+
+
 # --- 5. 앱 실행 ---
 
 import os  # os 모듈이 import 되어 있어야 합니다.
@@ -654,5 +740,13 @@ import os  # os 모듈이 import 되어 있어야 합니다.
 PORT = int(os.environ.get('PORT', 8080))
 
 if __name__ == '__main__':
-    # PORT 변수를 사용합니다.
-    app.run(host='0.0.0.0', port=PORT)
+    # 🚨 [수정된 부분] 🚨
+    # 서버가 시작되기 전에 db.create_all()을 실행하는 대신,
+    # Flask 앱 실행 환경에서 db.create_all()이 자동으로 실행되도록 설정하는 것이 안전합니다.
+
+    # 1. db.create_all() 코드는 그대로 유지합니다.
+    with app.app_context():
+        db.create_all()
+
+    # 2. 서버 실행
+    app.run(host='0.0.0.0', port=PORT, debug=True)

@@ -1,0 +1,17 @@
+{# templates/_macros.html #}
+
+{% macro render_stars(rating, max_stars=5) %}
+    {# 평점을 가장 가까운 정수로 반올림하여 만점 별 개수를 계산합니다. #}
+    {% set full_stars = (rating | round) | int %}
+    {% set empty_stars = max_stars - full_stars %}
+
+    {# 꽉 찬 별 (Full Stars) #}
+    {% for i in range(full_stars) %}
+        <span style="color: gold; font-size: 1.2em;">&#9733;</span>
+    {% endfor %}
+
+    {# 빈 별 (Empty Stars) #}
+    {% for i in range(empty_stars) %}
+        <span style="color: #ccc; font-size: 1.2em;">&#9734;</span>
+    {% endfor %}
+{% endmacro %}
