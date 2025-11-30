@@ -746,7 +746,7 @@ if __name__ == '__main__':
 
     # 1. db.create_all() 코드는 그대로 유지합니다.
     with app.app_context():
-        db.create_all()
+       
 
     # 2. 서버 실행
     app.run(host='0.0.0.0', port=PORT, debug=True)
