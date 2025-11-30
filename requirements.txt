@@ -19,4 +19,4 @@ typing-extensions # <--- 이 부분이 수정되었습니다.
 Werkzeug==3.0.3
 WTForms==3.1.2
 
-psycopg2-binary
+
