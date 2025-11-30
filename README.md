@@ -79,5 +79,24 @@ Railway 배포를 위해 `requirements.txt`와 Procfile 파일을 정의했으�
 2.  의존성 설치: `pip install -r requirements.txt`
 3.  서버 실행: `python main.py` 또는 `gunicorn --bind 0.0.0.0:8000 main:app`
 
+---
+✨ 추가 구현 및 시스템 개선 사항 (Enhanced Features)
 
-**이 내용을 `README.md` 파일에 복사하여 Railway 주소만 채워 넣으신 후, GitHub에 최종 푸시하시면 됩니다.**
+본 프로젝트는 기본적인 MVP(최소 기능 제품) 구현을 넘어, 서비스의 견고성(Robustness)과 전문적인 운영 환경 구성을 목표로 다음 기능들을 추가했습니다.
+
+1. 🛡️ 시스템 견고성 확보 및 트랜잭션 관리
+
+*중복 예약 완벽 차단: 예약 신청 시, SQLAlchemy 필터링을 통해 CONFIRMED 상태의 기존 예약과 날짜가 겹치는지 실시간으로 검증하여 이중 예약을 근본적으로 차단하는 로직을 구현했습니다. (공유 플랫폼의 핵심 방어 로직)
+*선결제 시스템 연동: 게스트의 잔액을 확인하고, 호스트의 승인과 동시에 예약 금액을 잔액에서 차감하는 트랜잭션 관리 로직을 구현했습니다.
+*카라반 상태 자동 업데이트: 예약 승인/거절 시 카라반의 상태(`AVAILABLE` / `BOOKED`)를 자동으로 연동하여 관리 효율성을 높였습니다.
+
+2. ⭐ 리뷰/평가 시스템 완성 및 UX 개선
+
+* 평점 실시간 반영: 게스트가 리뷰를 제출하면, `update_user_rating` 헬퍼 함수를 통해 호스트의 평균 평점(`average_host_rating`)과 카라반의 평균 평점(`average_rating`)을 즉시 계산하여 DB에 반영합니다.
+* 별점 시각화 (UX): `caravan_detail.html`에서 숫자 평점을 **Jinja2 매크로**를 활용하여 아름다운 골드 별 아이콘으로 변환하여 표시함으로써 시각적 완성도를 극대화했습니다.
+
+3. 💻 프로덕션 배포 환경 구성
+
+*Gunicorn 서버 적용:** Flask 개발 서버 대신, 실제 서비스 환경에 적합한 Gunicorn WSGI 서버를 사용하여 앱의 안정성과 동시 처리 능력을 확보했습니다.
+* Railway 배포 안정화:** `requirements.txt`와 `Procfile`을 정의하고 GitHub와 Railway를 연동하여 지속적 배포(CI/CD) 환경을 구축했습니다.
+
