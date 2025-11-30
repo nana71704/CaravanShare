@@ -740,10 +740,10 @@ import os  # os 모듈이 import 되어 있어야 합니다.
 PORT = int(os.environ.get('PORT', 8080))
 
 if __name__ == '__main__':
-    # 1. db.create_all() 코드는 반드시 app.app_context() 안에 있어야 합니다.
+    # 1. DB 테이블 생성 (Railway에서는 이제 Procfile에서 실행되므로, 이 블록은 로컬 테스트용입니다)
     with app.app_context():
-        # 🚨 [수정 완료] 테이블 생성 명령어 삽입
+        # 테이블을 만들거나 마이그레이션을 실행하는 코드
+        db.create_all() 
         
-        
-    # 2. 서버 실행
+    # 2. 서버 실행 (app.run은 if 블록 안에 있어야 합니다.)
     app.run(host='0.0.0.0', port=PORT, debug=True)
